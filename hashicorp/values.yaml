@@ -1,0 +1,17 @@
+vault:
+  image: hashicorp/vault:latest
+  replicas: 1
+  servicePort: 8200
+  ha:
+    enabled: true
+    replicas: 3
+  storage:
+    postgres:
+      connection_url: "postgres://{{ .Values.postgres.username }}:{{ .Values.postgres.password }}@postgres:{{ .Values.postgres.servicePort }}/{{ .Values.postgres.database }}?sslmode=disable"
+
+postgres:
+  image: postgres:latest
+  username: vault
+  password: vaultpassword
+  database: vault
+  servicePort: 5432

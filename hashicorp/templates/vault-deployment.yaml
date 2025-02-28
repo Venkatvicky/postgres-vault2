@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault
+spec:
+  replicas: {{ .Values.vault.replicas }}
+  selector:
+    matchLabels:
+      app: vault
+  template:
+    metadata:
+      labels:
+        app: vault
+    spec:
+      containers:
+        - name: vault
+          image: {{ .Values.vault.image }}
+          ports:
+            - containerPort: {{ .Values.vault.servicePort }}
+          env:
+            - name: VAULT_LOCAL_CONFIG
+              value: |
+                {
+                  "storage": {
+                    "postgresql": {
+                      "connection_url": "{{ .Values.vault.storage.postgres.connection_url }}"
+                    }
+                  },
+                  "listener": [
+                    {
+                      "tcp": {
+                        "address": "[::]:8200",
+                        "tls_disable": 1
+                      }
+                    }
+                  ]
+                }
+          livenessProbe:
+            httpGet:
+              path: /v1/sys/health
+              port: {{ .Values.vault.servicePort }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /v1/sys/health
+              port: {{ .Values.vault.servicePort }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
